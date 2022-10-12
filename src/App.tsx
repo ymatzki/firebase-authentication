@@ -1,34 +1,64 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  User,
+} from "firebase/auth";
+import "./App.css";
+
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_API_KEY || "",
+  authDomain: import.meta.env.VITE_AUTH_DOMAIN || "",
+  projectId: import.meta.env.VITE_PROJECT_ID || "",
+  storageBucket: import.meta.env.VITE_STORAGE_BUCKET || "",
+  messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID || "",
+  appId: import.meta.env.VITE_APP_ID || "",
+  measurementId: import.meta.env.VITE_MEASUREMENT_ID || "",
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const [user, setUser] = useState<User | null>(auth.currentUser);
+  useEffect(() => {
+    auth.onAuthStateChanged((user) => {
+      setUser(user);
+    });
+  }, []);
+
+  const onClick = async () => {
+    if (!user) {
+      const provider = new GoogleAuthProvider();
+      provider.addScope("https://www.googleapis.com/auth/plus.login");
+      signInWithPopup(auth, provider);
+    } else {
+      await signOut(auth);
+    }
+  };
+
+  const text = !user ? "Sign in with Google" : "Sign out";
 
   return (
     <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
+      <h1>Firebase Authentication</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        <button onClick={onClick}>{text}</button>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <div className="card">
+        {user ? (
+          <>
+            <div>{user.email}</div>
+          </>
+        ) : (
+          <></>
+        )}
+      </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
