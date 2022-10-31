@@ -19,7 +19,7 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_MEASUREMENT_ID || "",
 };
 
-function App() {
+function App() { 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
@@ -34,7 +34,7 @@ function App() {
     if (!user) {
       const provider = new GoogleAuthProvider();
       provider.addScope("https://www.googleapis.com/auth/plus.login");
-      signInWithPopup(auth, provider);
+      await signInWithPopup(auth, provider);
     } else {
       await signOut(auth);
     }
